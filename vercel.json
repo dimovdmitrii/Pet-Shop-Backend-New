@@ -19,5 +19,6 @@
     "index.js": {
       "maxDuration": 30
     }
-  }
+  },
+  "installCommand": "npm install --production=false"
 }
