@@ -4,7 +4,7 @@ const path = require("path");
 
 // DATABASE_URL для Railway PostgreSQL
 const DATABASE_URL =
-  "postgresql://postgres:INJFHGmHTlzgtShrRGXbZMYikfyHyiJG@centerbeam.proxy.rlwy.net:16795/railway";
+  "postgresql://neondb_owner:npg_3RZjcmbxoyL0@ep-snowy-field-ag3r1okt-pooler.c-2.eu-central-1.aws.neon.tech/neondb?sslmode=require";
 
 // Подключение к PostgreSQL (Railway)
 const pgSequelize = new Sequelize(DATABASE_URL, {
