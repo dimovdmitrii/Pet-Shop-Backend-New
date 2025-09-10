@@ -171,7 +171,21 @@ app.get("/categories/:id", async (req, res) => {
     
     const categoryId = parseInt(req.params.id);
     const category = await sql`SELECT * FROM categories WHERE id = ${categoryId}`;
-    const products = await sql`SELECT * FROM products WHERE "categoryId" = ${categoryId}`;
+    const products = await sql`
+      SELECT 
+        id,
+        name,
+        price,
+        oldprice as "oldPrice",
+        image,
+        categoryid as "categoryId",
+        isnew as "isNew",
+        issale as "isSale",
+        created_at,
+        updated_at
+      FROM products 
+      WHERE categoryid = ${categoryId}
+    `;
     
     if (category.length === 0) {
       return res.status(404).json({ status: "ERR", message: "Category not found" });
@@ -194,7 +208,21 @@ app.get("/products/all", async (req, res) => {
       return res.json(mockProducts);
     }
     
-    const products = await sql`SELECT * FROM products ORDER BY id`;
+    const products = await sql`
+      SELECT 
+        id,
+        name,
+        price,
+        oldprice as "oldPrice",
+        image,
+        categoryid as "categoryId",
+        isnew as "isNew",
+        issale as "isSale",
+        created_at,
+        updated_at
+      FROM products 
+      ORDER BY id
+    `;
     res.json(products);
   } catch (error) {
     console.error("Error fetching products:", error);
@@ -217,7 +245,21 @@ app.get("/products/:id", async (req, res) => {
     }
     
     const productId = parseInt(req.params.id);
-    const product = await sql`SELECT * FROM products WHERE id = ${productId}`;
+    const product = await sql`
+      SELECT 
+        id,
+        name,
+        price,
+        oldprice as "oldPrice",
+        image,
+        categoryid as "categoryId",
+        isnew as "isNew",
+        issale as "isSale",
+        created_at,
+        updated_at
+      FROM products 
+      WHERE id = ${productId}
+    `;
     
     if (product.length === 0) {
       return res.status(404).json({ status: "ERR", message: "Product not found" });
@@ -238,7 +280,21 @@ app.get("/sale/send", async (req, res) => {
       return res.json(saleProducts);
     }
     
-    const saleProducts = await sql`SELECT * FROM products WHERE "isSale" = true`;
+    const saleProducts = await sql`
+      SELECT 
+        id,
+        name,
+        price,
+        oldprice as "oldPrice",
+        image,
+        categoryid as "categoryId",
+        isnew as "isNew",
+        issale as "isSale",
+        created_at,
+        updated_at
+      FROM products 
+      WHERE issale = true
+    `;
     res.json(saleProducts);
   } catch (error) {
     console.error("Error fetching sale products:", error);
