@@ -135,6 +135,8 @@ app.get("/categories/all", async (req, res) => {
   try {
     console.log("📋 Fetching categories...");
     console.log("🔍 SQL object:", sql ? "initialized" : "null");
+    console.log("🔍 NODE_ENV:", process.env.NODE_ENV);
+    console.log("🔍 DATABASE_URL exists:", !!process.env.DATABASE_URL);
     
     if (!sql) {
       console.log("📦 Using mock categories data");
@@ -142,18 +144,23 @@ app.get("/categories/all", async (req, res) => {
     }
     
     console.log("🗄️ Querying database for categories...");
-    const categories = await sql`
-      SELECT 
-        id,
-        title as "name",
-        image,
-        created_at,
-        updated_at
-      FROM "Categories" 
-      ORDER BY id
-    `;
-    console.log(`✅ Found ${categories.length} categories in database`);
-    res.json(categories);
+    try {
+      const categories = await sql`
+        SELECT 
+          id,
+          title as "name",
+          image,
+          "createdAt",
+          "updatedAt"
+        FROM "Categories" 
+        ORDER BY id
+      `;
+      console.log(`✅ Found ${categories.length} categories in database`);
+      res.json(categories);
+    } catch (dbError) {
+      console.error("❌ Database error:", dbError);
+      throw dbError;
+    }
   } catch (error) {
     console.error("❌ Error fetching categories:", error);
     res.status(500).json({ error: "Failed to fetch categories" });
@@ -195,10 +202,11 @@ app.get("/categories/:id", async (req, res) => {
         title as "name",
         price,
         discont_price as "oldPrice",
-        image,
+        description,
         "categoryId",
-        created_at,
-        updated_at
+        image,
+        "createdAt",
+        "updatedAt"
       FROM "Products" 
       WHERE "categoryId" = ${categoryId}
     `;
@@ -230,10 +238,11 @@ app.get("/products/all", async (req, res) => {
         title as "name",
         price,
         discont_price as "oldPrice",
-        image,
+        description,
         "categoryId",
-        created_at,
-        updated_at
+        image,
+        "createdAt",
+        "updatedAt"
       FROM "Products" 
       ORDER BY id
     `;
@@ -265,10 +274,11 @@ app.get("/products/:id", async (req, res) => {
         title as "name",
         price,
         discont_price as "oldPrice",
-        image,
+        description,
         "categoryId",
-        created_at,
-        updated_at
+        image,
+        "createdAt",
+        "updatedAt"
       FROM "Products" 
       WHERE id = ${productId}
     `;
@@ -298,10 +308,11 @@ app.get("/sale/send", async (req, res) => {
         title as "name",
         price,
         discont_price as "oldPrice",
-        image,
+        description,
         "categoryId",
-        created_at,
-        updated_at
+        image,
+        "createdAt",
+        "updatedAt"
       FROM "Products" 
       WHERE discont_price IS NOT NULL
     `;
