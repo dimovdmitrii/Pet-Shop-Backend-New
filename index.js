@@ -191,8 +191,8 @@ app.get("/categories/:id", async (req, res) => {
         id,
         title as "name",
         image,
-        created_at,
-        updated_at
+        "createdAt",
+        "updatedAt"
       FROM "Categories" 
       WHERE id = ${categoryId}
     `;
