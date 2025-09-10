@@ -105,8 +105,8 @@ app.get("/health", async (req, res) => {
     const result = await sql`SELECT NOW() as current_time`;
     
     // Проверяем количество записей
-    const categoryCount = await sql`SELECT COUNT(*) FROM categories`;
-    const productCount = await sql`SELECT COUNT(*) FROM products`;
+    const categoryCount = await sql`SELECT COUNT(*) FROM "Categories"`;
+    const productCount = await sql`SELECT COUNT(*) FROM "Products"`;
     
     res.json({
       status: "OK",
