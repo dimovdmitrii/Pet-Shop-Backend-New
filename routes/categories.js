@@ -1,7 +1,6 @@
 const Category = require('../database/models/category');
 const Product = require('../database/models/product');
 
-const { request } = require('express');
 const express = require('express');
 
 const router = express.Router();
