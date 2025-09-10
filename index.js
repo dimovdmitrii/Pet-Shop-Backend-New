@@ -27,7 +27,8 @@ app.use(
     origin: [
       "http://localhost:5173", // Vite dev server
       "http://localhost:3000", // Альтернативный dev порт
-      "https://your-frontend-name.vercel.app", // Замените на ваш Vercel URL
+      "https://petshop-project-9yvdnmk40-dimovdmitriis-projects.vercel.app",
+      "https://petshop-project-blond.vercel.app",
     ],
     credentials: true,
   })
