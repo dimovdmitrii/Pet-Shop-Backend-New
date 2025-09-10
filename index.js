@@ -15,7 +15,6 @@ app.use(
     origin: [
       "http://localhost:5173",
       "http://localhost:3000",
-      "https://petshop-project-9yvdnmk40-dimovdmitriis-projects.vercel.app",
       "https://petshop-project-blond.vercel.app",
     ],
     credentials: true,
