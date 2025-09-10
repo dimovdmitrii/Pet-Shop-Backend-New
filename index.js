@@ -10,6 +10,10 @@ const PORT = process.env.PORT || 3333;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Статические файлы
+app.use('/product_img', express.static('public/product_img'));
+app.use('/category_img', express.static('public/category_img'));
+
 // CORS настройки
 app.use(
   cors({

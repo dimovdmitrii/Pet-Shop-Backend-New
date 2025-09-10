@@ -13,17 +13,11 @@
   "routes": [
     {
       "src": "/product_img/(.*)",
-      "dest": "/public/product_img/$1",
-      "headers": {
-        "Content-Type": "image/jpeg"
-      }
+      "dest": "/public/product_img/$1"
     },
     {
       "src": "/category_img/(.*)",
-      "dest": "/public/category_img/$1",
-      "headers": {
-        "Content-Type": "image/jpeg"
-      }
+      "dest": "/public/category_img/$1"
     },
     {
       "src": "/(.*)",
