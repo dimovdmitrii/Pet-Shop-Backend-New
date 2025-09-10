@@ -13,11 +13,17 @@
   "routes": [
     {
       "src": "/product_img/(.*)",
-      "dest": "/public/product_img/$1"
+      "dest": "/public/product_img/$1",
+      "headers": {
+        "Cache-Control": "public, max-age=31536000, immutable"
+      }
     },
     {
       "src": "/category_img/(.*)",
-      "dest": "/public/category_img/$1"
+      "dest": "/public/category_img/$1",
+      "headers": {
+        "Cache-Control": "public, max-age=31536000, immutable"
+      }
     },
     {
       "src": "/(.*)",
