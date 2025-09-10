@@ -4,9 +4,15 @@ const { Sequelize } = require("sequelize");
 let sequelize;
 
 if (process.env.NODE_ENV === "production") {
-  // Для продакшена (Vercel) используем in-memory базу для тестирования
-  sequelize = new Sequelize("sqlite::memory:", {
-    dialect: "sqlite",
+  // Для продакшена (Vercel) используем PostgreSQL
+  sequelize = new Sequelize(process.env.DATABASE_URL, {
+    dialect: "postgres",
+    dialectOptions: {
+      ssl: {
+        require: true,
+        rejectUnauthorized: false,
+      },
+    },
     logging: false,
   });
 } else {
@@ -14,6 +20,7 @@ if (process.env.NODE_ENV === "production") {
   sequelize = new Sequelize({
     dialect: "sqlite",
     storage: "./database.sqlite",
+    logging: false,
   });
 }
 

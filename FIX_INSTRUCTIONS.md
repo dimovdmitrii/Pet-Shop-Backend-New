@@ -44,3 +44,4 @@ node index.js
 - POST `/sale/send` - отправить данные акции
 - GET `/order/send` - эндпоинт для заказов
 - POST `/order/send` - отправить заказ
+
