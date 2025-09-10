@@ -25,14 +25,14 @@ router.get("/:id", async (req, res) => {
   }
 
   try {
-    const all = await Product.findAll({ where: { id: +id } });
+    const product = await Product.findOne({ where: { id: +id } });
 
-    if (all.length === 0) {
+    if (!product) {
       res.json({ status: "ERR", message: "product not found" });
       return;
     }
 
-    res.json(all);
+    res.json(product);
   } catch (error) {
     console.error("Error fetching product:", error);
     res.status(500).json({ error: "Failed to fetch product" });

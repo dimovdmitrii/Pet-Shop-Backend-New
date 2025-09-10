@@ -8,11 +8,27 @@ const Product = sequelize.define("product", {
         autoIncrement: true,
         primaryKey: true
     },
-    title: DataTypes.TEXT,
-    price: DataTypes.INTEGER,
-    discont_price: DataTypes.INTEGER,
+    name: DataTypes.TEXT,
+    price: DataTypes.DECIMAL(10, 2),
+    oldPrice: DataTypes.DECIMAL(10, 2),
     description: DataTypes.TEXT,
     image: DataTypes.TEXT,
+    categoryId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            model: 'categories',
+            key: 'id'
+        }
+    },
+    isNew: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
+    },
+    isSale: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
+    }
 });
 
 

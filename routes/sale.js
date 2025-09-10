@@ -7,7 +7,7 @@ router.get("/send", (req, res) => {
     try {
       const saleProducts = await Product.findAll({
         where: {
-          discont_price: { [require("sequelize").Op.ne]: null },
+          isSale: true,
         },
       });
       res.json(saleProducts);
