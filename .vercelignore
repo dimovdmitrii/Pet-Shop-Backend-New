@@ -12,3 +12,5 @@ FIX_INSTRUCTIONS.md
 backup.sql
 migrate-data.js
 start.bat
+test-neon.js
+check-deps.js
