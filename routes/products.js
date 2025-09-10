@@ -1,43 +1,42 @@
-const express = require('express');
-const Product = require('../database/models/product');
-
+const express = require("express");
+const Product = require("../database/models/product");
 const router = express.Router();
 
-
-
-router.get('/all', (req, res) =>{
-    
-    async function all(){
-        const all = await Product.findAll();
-        console.log(all);
-        res.json(all);
+router.get("/all", (req, res) => {
+  async function all() {
+    try {
+      const all = await Product.findAll();
+      console.log("Products found:", all.length);
+      res.json(all);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+      res.status(500).json({ error: "Failed to fetch products" });
     }
-    all();
-})
+  }
+  all();
+});
 
+router.get("/:id", async (req, res) => {
+  const { id } = req.params;
 
-router.get('/:id', async (req, res) =>{
-    const {id} = req.params;
+  if (isNaN(id)) {
+    res.json({ status: "ERR", message: "wrong id" });
+    return;
+  }
 
-    if (isNaN(id)){
-        res.json({status: 'ERR', message: 'wrong id'}); 
-        return  
+  try {
+    const all = await Product.findAll({ where: { id: +id } });
+
+    if (all.length === 0) {
+      res.json({ status: "ERR", message: "product not found" });
+      return;
     }
-    const all = await Product.findAll({where: {id: +id}});
 
-    if(all.length === 0){
-        res.json({status: 'ERR', message: 'product not found'});
-        return
-    }
-    
     res.json(all);
-})
-
-
-router.get('/add/:title/:price/:discont_price/:description', (req, res) =>{
-    const {title, price, discont_price, description} = req.params;
-    Product.create({title, price, discont_price, description, categoryId: 1});
-    res.json(`добавлено`);
-})
+  } catch (error) {
+    console.error("Error fetching product:", error);
+    res.status(500).json({ error: "Failed to fetch product" });
+  }
+});
 
 module.exports = router;
