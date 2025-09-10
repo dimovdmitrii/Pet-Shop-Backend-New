@@ -23,6 +23,9 @@
     "sequelize": "^6.35.0",
     "sqlite3": "^5.1.7"
   },
+  "optionalDependencies": {
+    "pg-native": "^3.0.0"
+  },
   "devDependencies": {
     "nodemon": "^2.0.20"
   }
