@@ -21,5 +21,5 @@
       "memory": 1024
     }
   },
-  "installCommand": "npm install --production=false --legacy-peer-deps"
+  "installCommand": "npm install --production=false"
 }

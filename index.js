@@ -1,65 +1,49 @@
+// Упрощенная версия API с Neon serverless драйвером
 const express = require("express");
-const categories = require("./routes/categories");
-const sale = require("./routes/sale");
-const order = require("./routes/order");
-const products = require("./routes/products");
-const sequelize = require("./database/database");
 const cors = require("cors");
-const Category = require("./database/models/category");
-const Product = require("./database/models/product");
-
-// Используем порт из переменной окружения или 3333 для локальной разработки
-const PORT = process.env.PORT || 3333;
-
-Category.hasMany(Product);
-Product.belongsTo(Category);
+const { neon } = require('@neondatabase/serverless');
 
 const app = express();
+const PORT = process.env.PORT || 3333;
 
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static("public"));
 
-// CORS настройки для продакшена
+// CORS настройки
 app.use(
   cors({
     origin: [
       "http://localhost:5173",
       "http://localhost:3000",
-      "commit -mhttps://pet-shop-backend-new.vercel.app/",
+      "https://petshop-project-blond.vercel.app",
     ],
     credentials: true,
   })
 );
 
-// Роуты
-app.use("/categories", categories);
-app.use("/products", products);
-app.use("/sale", sale);
-app.use("/order", order);
-
-// Обработка ошибок
-app.use((err, req, res, next) => {
-  console.error("Error:", err);
-  res.status(500).json({ error: "Internal server error" });
-});
-
-// Обработка 404
-app.use((req, res) => {
-  res.status(404).json({ error: "Route not found" });
-});
+// Инициализация Neon подключения
+let sql;
+if (process.env.NODE_ENV === "production") {
+  if (!process.env.DATABASE_URL) {
+    console.error("DATABASE_URL not found in production");
+  } else {
+    console.log("Connecting to Neon PostgreSQL...");
+    sql = neon(process.env.DATABASE_URL);
+  }
+}
 
 // Базовый роут для проверки
 app.get("/", (req, res) => {
   res.json({ 
     message: "Pet Shop API is running!",
     environment: process.env.NODE_ENV || "development",
+    hasDatabaseUrl: !!process.env.DATABASE_URL,
     timestamp: new Date().toISOString()
   });
 });
 
-// Простой роут для тестирования без базы данных
+// Простой роут для тестирования
 app.get("/test", (req, res) => {
   res.json({ 
     status: "OK",
@@ -70,23 +54,34 @@ app.get("/test", (req, res) => {
   });
 });
 
-// Роут для проверки здоровья API
+// Роут для проверки здоровья API с Neon
 app.get("/health", async (req, res) => {
   try {
+    if (!sql) {
+      return res.status(500).json({
+        status: "ERROR",
+        database: "Not connected",
+        error: "No database connection",
+        environment: process.env.NODE_ENV || "development",
+        hasDatabaseUrl: !!process.env.DATABASE_URL,
+        timestamp: new Date().toISOString()
+      });
+    }
+
     // Проверяем подключение к базе данных
-    await sequelize.authenticate();
+    const result = await sql`SELECT NOW() as current_time`;
     
     // Проверяем количество записей
-    const categoryCount = await Category.count();
-    const productCount = await Product.count();
+    const categoryCount = await sql`SELECT COUNT(*) FROM categories`;
+    const productCount = await sql`SELECT COUNT(*) FROM products`;
     
     res.json({
       status: "OK",
       database: "Connected",
       environment: process.env.NODE_ENV || "development",
       hasDatabaseUrl: !!process.env.DATABASE_URL,
-      categories: categoryCount,
-      products: productCount,
+      categories: categoryCount[0].count,
+      products: productCount[0].count,
       timestamp: new Date().toISOString()
     });
   } catch (error) {
@@ -102,67 +97,135 @@ app.get("/health", async (req, res) => {
   }
 });
 
-// Инициализация базы данных (только для локальной разработки)
-const initDB = async () => {
+// Роуты с Neon драйвером
+app.get("/categories/all", async (req, res) => {
   try {
-    // Проверяем подключение к базе данных
-    await sequelize.authenticate();
-    console.log("Database connection established successfully");
-    
-    // В продакшене не синхронизируем автоматически, так как таблицы уже созданы
-    if (process.env.NODE_ENV !== "production") {
-      await sequelize.sync();
-      console.log("Database synchronized successfully");
-
-      // Добавляем тестовые данные если таблицы пустые
-      const categoryCount = await Category.count();
-      if (categoryCount === 0) {
-        // Создаем тестовые категории
-        await Category.bulkCreate([
-          { name: "Dogs", image: "/images/dogs.jpg" },
-          { name: "Cats", image: "/images/cats.jpg" },
-          { name: "Birds", image: "/images/birds.jpg" },
-        ]);
-
-        // Создаем тестовые продукты
-        await Product.bulkCreate([
-          {
-            name: "Dog Food Premium",
-            price: 25.99,
-            oldPrice: 30.99,
-            image: "/images/dog-food.jpg",
-            categoryId: 1,
-            isNew: true,
-            isSale: false,
-          },
-          {
-            name: "Cat Toy",
-            price: 15.5,
-            oldPrice: 20.0,
-            image: "/images/cat-toy.jpg",
-            categoryId: 2,
-            isNew: false,
-            isSale: true,
-          },
-        ]);
-
-        console.log("Test data created successfully");
-      }
+    if (!sql) {
+      return res.status(500).json({ error: "Database not connected" });
     }
-  } catch (err) {
-    console.error("Database initialization error:", err);
+    
+    const categories = await sql`SELECT * FROM categories ORDER BY id`;
+    res.json(categories);
+  } catch (error) {
+    console.error("Error fetching categories:", error);
+    res.status(500).json({ error: "Failed to fetch categories" });
   }
-};
+});
 
-// Инициализируем базу данных только для локальной разработки
-if (process.env.NODE_ENV !== "production") {
-  initDB();
-}
+app.get("/categories/:id", async (req, res) => {
+  try {
+    if (!sql) {
+      return res.status(500).json({ error: "Database not connected" });
+    }
+    
+    const categoryId = parseInt(req.params.id);
+    const category = await sql`SELECT * FROM categories WHERE id = ${categoryId}`;
+    const products = await sql`SELECT * FROM products WHERE "categoryId" = ${categoryId}`;
+    
+    if (category.length === 0) {
+      return res.status(404).json({ status: "ERR", message: "Category not found" });
+    }
+    
+    res.json({
+      category: category[0],
+      data: products
+    });
+  } catch (error) {
+    console.error("Error fetching category products:", error);
+    res.status(500).json({ error: "Failed to fetch category products" });
+  }
+});
+
+app.get("/products/all", async (req, res) => {
+  try {
+    if (!sql) {
+      return res.status(500).json({ error: "Database not connected" });
+    }
+    
+    const products = await sql`SELECT * FROM products ORDER BY id`;
+    res.json(products);
+  } catch (error) {
+    console.error("Error fetching products:", error);
+    res.status(500).json({ error: "Failed to fetch products" });
+  }
+});
+
+app.get("/products/:id", async (req, res) => {
+  try {
+    if (!sql) {
+      return res.status(500).json({ error: "Database not connected" });
+    }
+    
+    const productId = parseInt(req.params.id);
+    const product = await sql`SELECT * FROM products WHERE id = ${productId}`;
+    
+    if (product.length === 0) {
+      return res.status(404).json({ status: "ERR", message: "Product not found" });
+    }
+    
+    res.json(product[0]);
+  } catch (error) {
+    console.error("Error fetching product:", error);
+    res.status(500).json({ error: "Failed to fetch product" });
+  }
+});
+
+app.get("/sale/send", async (req, res) => {
+  try {
+    if (!sql) {
+      return res.status(500).json({ error: "Database not connected" });
+    }
+    
+    const saleProducts = await sql`SELECT * FROM products WHERE "isSale" = true`;
+    res.json(saleProducts);
+  } catch (error) {
+    console.error("Error fetching sale products:", error);
+    res.status(500).json({ error: "Failed to fetch sale products" });
+  }
+});
+
+app.post("/sale/send", (req, res) => {
+  res.json({ status: "OK", message: "Sale request processed" });
+});
+
+app.get("/order/send", (req, res) => {
+  res.json({ message: "Order endpoint is ready" });
+});
+
+app.post("/order/send", (req, res) => {
+  try {
+    const orderData = req.body;
+    console.log("Order received:", orderData);
+    
+    res.json({
+      status: "OK",
+      message: "Order processed successfully",
+      orderId: Date.now(),
+    });
+  } catch (error) {
+    console.error("Error processing order:", error);
+    res.status(500).json({
+      status: "ERROR",
+      message: "Failed to process order",
+    });
+  }
+});
+
+// Обработка ошибок
+app.use((err, req, res, next) => {
+  console.error("Error:", err);
+  res.status(500).json({ error: "Internal server error" });
+});
+
+// Обработка 404
+app.use((req, res) => {
+  res.status(404).json({ error: "Route not found" });
+});
 
 // Для локальной разработки
 if (process.env.NODE_ENV !== "production") {
   app.listen(PORT, () => {
-    console.log(`\n\nServer started on port ${PORT}...`);
+    console.log(`Server started on port ${PORT}...`);
   });
 }
 
