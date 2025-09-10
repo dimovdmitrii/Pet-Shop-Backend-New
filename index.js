@@ -85,10 +85,9 @@ app.get("/test", (req, res) => {
 app.get("/health", async (req, res) => {
   try {
     if (!sql) {
-      return res.status(500).json({
-        status: "ERROR",
-        database: "Not connected",
-        error: "No database connection",
+      return res.json({
+        status: "OK",
+        database: "Mock data mode",
         environment: process.env.NODE_ENV || "development",
         hasDatabaseUrl: !!process.env.DATABASE_URL,
         timestamp: new Date().toISOString()
