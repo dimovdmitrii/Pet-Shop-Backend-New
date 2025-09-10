@@ -26,3 +26,10 @@ try {
 
 console.log("Environment:", process.env.NODE_ENV || "development");
 console.log("Has DATABASE_URL:", !!process.env.DATABASE_URL);
+
+// Экспортируем для использования в других файлах
+module.exports = {
+  pg: require('pg'),
+  sequelize: require('sequelize'),
+  express: require('express')
+};

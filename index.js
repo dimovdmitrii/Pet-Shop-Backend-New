@@ -27,7 +27,7 @@ app.use(
     origin: [
       "http://localhost:5173",
       "http://localhost:3000",
-      "https://pet-shop-backend-new.vercel.app/",
+      "commit -mhttps://pet-shop-backend-new.vercel.app/",
     ],
     credentials: true,
   })
@@ -52,7 +52,22 @@ app.use((req, res) => {
 
 // Базовый роут для проверки
 app.get("/", (req, res) => {
-  res.json({ message: "Pet Shop API is running!" });
+  res.json({ 
+    message: "Pet Shop API is running!",
+    environment: process.env.NODE_ENV || "development",
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Простой роут для тестирования без базы данных
+app.get("/test", (req, res) => {
+  res.json({ 
+    status: "OK",
+    message: "API is working",
+    environment: process.env.NODE_ENV || "development",
+    hasDatabaseUrl: !!process.env.DATABASE_URL,
+    timestamp: new Date().toISOString()
+  });
 });
 
 // Роут для проверки здоровья API
@@ -75,6 +90,7 @@ app.get("/health", async (req, res) => {
       timestamp: new Date().toISOString()
     });
   } catch (error) {
+    console.error("Health check error:", error);
     res.status(500).json({
       status: "ERROR",
       database: "Disconnected",
@@ -86,7 +102,7 @@ app.get("/health", async (req, res) => {
   }
 });
 
-// Инициализация базы данных
+// Инициализация базы данных (только для локальной разработки)
 const initDB = async () => {
   try {
     // Проверяем подключение к базе данных
@@ -138,8 +154,10 @@ const initDB = async () => {
   }
 };
 
-// Инициализируем базу данных при старте
-initDB();
+// Инициализируем базу данных только для локальной разработки
+if (process.env.NODE_ENV !== "production") {
+  initDB();
+}
 
 // Для локальной разработки
 if (process.env.NODE_ENV !== "production") {
