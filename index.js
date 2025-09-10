@@ -27,9 +27,16 @@ let sql;
 if (process.env.NODE_ENV === "production") {
   if (!process.env.DATABASE_URL) {
     console.error("DATABASE_URL not found in production");
+    sql = null; // Используем моковые данные если нет DATABASE_URL
   } else {
     console.log("Connecting to Neon PostgreSQL...");
-    sql = neon(process.env.DATABASE_URL);
+    try {
+      sql = neon(process.env.DATABASE_URL);
+      console.log("✅ Neon connection initialized");
+    } catch (error) {
+      console.error("❌ Failed to initialize Neon connection:", error);
+      sql = null; // Используем моковые данные при ошибке
+    }
   }
 } else {
   // Для локальной разработки используем моковые данные
@@ -126,15 +133,20 @@ app.get("/health", async (req, res) => {
 // Роуты с Neon драйвером
 app.get("/categories/all", async (req, res) => {
   try {
+    console.log("📋 Fetching categories...");
+    console.log("🔍 SQL object:", sql ? "initialized" : "null");
+    
     if (!sql) {
-      // Используем моковые данные для локальной разработки
+      console.log("📦 Using mock categories data");
       return res.json(mockCategories);
     }
     
+    console.log("🗄️ Querying database for categories...");
     const categories = await sql`SELECT * FROM categories ORDER BY id`;
+    console.log(`✅ Found ${categories.length} categories in database`);
     res.json(categories);
   } catch (error) {
-    console.error("Error fetching categories:", error);
+    console.error("❌ Error fetching categories:", error);
     res.status(500).json({ error: "Failed to fetch categories" });
   }
 });
