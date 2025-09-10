@@ -1,4 +1,4 @@
-# Игнорируем файлы для Vercel
+t # Игнорируем файлы для Vercel
 database.sqlite
 *.log
 .env
