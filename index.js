@@ -142,7 +142,16 @@ app.get("/categories/all", async (req, res) => {
     }
     
     console.log("🗄️ Querying database for categories...");
-    const categories = await sql`SELECT * FROM categories ORDER BY id`;
+    const categories = await sql`
+      SELECT 
+        id,
+        title as "name",
+        image,
+        created_at,
+        updated_at
+      FROM "Categories" 
+      ORDER BY id
+    `;
     console.log(`✅ Found ${categories.length} categories in database`);
     res.json(categories);
   } catch (error) {
@@ -170,21 +179,28 @@ app.get("/categories/:id", async (req, res) => {
     }
     
     const categoryId = parseInt(req.params.id);
-    const category = await sql`SELECT * FROM categories WHERE id = ${categoryId}`;
+    const category = await sql`
+      SELECT 
+        id,
+        title as "name",
+        image,
+        created_at,
+        updated_at
+      FROM "Categories" 
+      WHERE id = ${categoryId}
+    `;
     const products = await sql`
       SELECT 
         id,
-        name,
+        title as "name",
         price,
-        oldprice as "oldPrice",
+        discont_price as "oldPrice",
         image,
-        categoryid as "categoryId",
-        isnew as "isNew",
-        issale as "isSale",
+        "categoryId",
         created_at,
         updated_at
-      FROM products 
-      WHERE categoryid = ${categoryId}
+      FROM "Products" 
+      WHERE "categoryId" = ${categoryId}
     `;
     
     if (category.length === 0) {
@@ -211,16 +227,14 @@ app.get("/products/all", async (req, res) => {
     const products = await sql`
       SELECT 
         id,
-        name,
+        title as "name",
         price,
-        oldprice as "oldPrice",
+        discont_price as "oldPrice",
         image,
-        categoryid as "categoryId",
-        isnew as "isNew",
-        issale as "isSale",
+        "categoryId",
         created_at,
         updated_at
-      FROM products 
+      FROM "Products" 
       ORDER BY id
     `;
     res.json(products);
@@ -248,16 +262,14 @@ app.get("/products/:id", async (req, res) => {
     const product = await sql`
       SELECT 
         id,
-        name,
+        title as "name",
         price,
-        oldprice as "oldPrice",
+        discont_price as "oldPrice",
         image,
-        categoryid as "categoryId",
-        isnew as "isNew",
-        issale as "isSale",
+        "categoryId",
         created_at,
         updated_at
-      FROM products 
+      FROM "Products" 
       WHERE id = ${productId}
     `;
     
@@ -283,17 +295,15 @@ app.get("/sale/send", async (req, res) => {
     const saleProducts = await sql`
       SELECT 
         id,
-        name,
+        title as "name",
         price,
-        oldprice as "oldPrice",
+        discont_price as "oldPrice",
         image,
-        categoryid as "categoryId",
-        isnew as "isNew",
-        issale as "isSale",
+        "categoryId",
         created_at,
         updated_at
-      FROM products 
-      WHERE issale = true
+      FROM "Products" 
+      WHERE discont_price IS NOT NULL
     `;
     res.json(saleProducts);
   } catch (error) {
